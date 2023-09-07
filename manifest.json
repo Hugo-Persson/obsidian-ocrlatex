@@ -3,9 +3,8 @@
 	"name": "OCR Latex",
 	"version": "1.0.0",
 	"minAppVersion": "0.15.0",
-	"description": "This is a plugin that is able to read the last image in the clipboard and convert it to latex. It uses the following project https://github.com/lukas-blecher/LaTeX-OCR",
+	"description": "This is a plugin that is able to read the last image in the clipboard and convert it to latex and inserts. It uses the SimpleTEX API",
 	"author": "Hugo Persson",
 	"authorUrl": "https://github.com/Hugo-Persson",
-	"fundingUrl": "https://obsidian.md/pricing",
-	"isDesktopOnly": false
+	"isDesktopOnly": true
 }
