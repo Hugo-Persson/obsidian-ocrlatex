@@ -27,3 +27,11 @@ To use this plugin you need to create a developer account at https://simpletex.c
 
 -   [ ] Convert already pasted images
 -   [ ] Use https://github.com/lukas-blecher/LaTeX-OCR for self hosted version
+
+# Attribution
+
+Thanks to these libraries and services for making this plugin possible
+
+-   https://www.npmjs.com/package/node-fetch
+-   https://www.npmjs.com/package/form-data
+-   https://simpletex.cn/
