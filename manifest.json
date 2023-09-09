@@ -1,9 +1,9 @@
 {
-	"id": "ocrlatex",
-	"name": "OCR Latex",
+	"id": "image2latex",
+	"name": "Image2LaTEX",
 	"version": "1.0.0",
 	"minAppVersion": "0.15.0",
-	"description": "This is a plugin that is able to read the last image in the clipboard and convert it to latex and inserts. It uses the SimpleTEX API",
+	"description": "This is a plugin that is able to read the last image in the clipboard and convert it to latex.",
 	"author": "Hugo Persson",
 	"authorUrl": "https://github.com/Hugo-Persson",
 	"isDesktopOnly": true
