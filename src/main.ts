@@ -8,16 +8,16 @@ import FormData from "form-data";
 
 import { SimpleTexResponse } from "./SimpleTexResponse";
 
-interface MyPluginSettings {
+interface OCRLatexPluginSettings {
 	token: string;
 }
 
-const DEFAULT_SETTINGS: MyPluginSettings = {
+const DEFAULT_SETTINGS: OCRLatexPluginSettings = {
 	token: "",
 };
 
-export default class MyPlugin extends Plugin {
-	settings: MyPluginSettings;
+export default class OCRLatexPlugin extends Plugin {
+	settings: OCRLatexPluginSettings;
 
 	async sendSimpleTexRequest(image: Uint8Array): Promise<SimpleTexResponse> {
 		const formData = new FormData();
@@ -93,7 +93,7 @@ export default class MyPlugin extends Plugin {
 		});
 
 		// This adds a settings tab so the user can configure various aspects of the plugin
-		this.addSettingTab(new SampleSettingTab(this.app, this));
+		this.addSettingTab(new OCRLatexSettings(this.app, this));
 	}
 
 	onunload() {}
@@ -111,10 +111,10 @@ export default class MyPlugin extends Plugin {
 	}
 }
 
-class SampleSettingTab extends PluginSettingTab {
-	plugin: MyPlugin;
+class OCRLatexSettings extends PluginSettingTab {
+	plugin: OCRLatexPlugin;
 
-	constructor(app: App, plugin: MyPlugin) {
+	constructor(app: App, plugin: OCRLatexPlugin) {
 		super(app, plugin);
 		this.plugin = plugin;
 	}
