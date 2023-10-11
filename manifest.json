@@ -1,9 +1,9 @@
 {
 	"id": "image2latex",
 	"name": "Image2LaTEX",
-	"version": "1.0.2",
+	"version": "1.0.3",
 	"minAppVersion": "0.15.0",
-	"description": "This is a plugin that is able to read the last image in the clipboard and convert it to latex.",
+	"description": "Convert your images with math to LaTEX code.",
 	"author": "Hugo Persson",
 	"authorUrl": "https://github.com/Hugo-Persson",
 	"isDesktopOnly": true
