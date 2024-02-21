@@ -42,7 +42,7 @@ export default class OCRLatexPlugin extends Plugin {
 		return data;
 	}
 
-	async insertLatexFromClipboard() {
+	async insertLatexFromClipboard(isMultiline=false) {
 		console.log(clipboard.availableFormats());
 		const view = this.app.workspace.getActiveViewOfType(MarkdownView);
 		const cursor = view?.editor.getCursor();
@@ -72,8 +72,11 @@ export default class OCRLatexPlugin extends Plugin {
 		const image = clipboard.readImage().toPNG();
 		const data = await this.sendSimpleTexRequest(image);
 		console.log(data);
-		const parsedLatex = `$$ ${data.res.latex}$$`;
-
+		
+		let parsedLatex;
+		if (isMultiline) parsedLatex = `$$ ${data.res.latex}$$`;
+		else parsedLatex = `$ ${data.res.latex}$`;
+		
 		view?.editor.replaceRange(parsedLatex, cursor, {
 			// Insert the response
 			ch: cursor.ch + loadingText.length, // We replace the loading text
@@ -85,10 +88,18 @@ export default class OCRLatexPlugin extends Plugin {
 		await this.loadSettings();
 
 		this.addCommand({
-			id: "generate-latex-from-last-image",
-			name: "Generate latex from last image to clipboard",
+			id: "generate-latex-from-last-image-multiline",
+			name: "Generate multiline LaTeX from last image to clipboard",
 			callback: () => {
-				this.insertLatexFromClipboard();
+				this.insertLatexFromClipboard(true);
+			},
+		});
+
+		this.addCommand({
+			id: "generate-latex-from-last-image-inline",
+			name: "Generate inline LaTeX from last image to clipboard",
+			callback: () => {
+				this.insertLatexFromClipboard(false);
 			},
 		});
 
