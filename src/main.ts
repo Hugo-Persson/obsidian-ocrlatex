@@ -75,7 +75,7 @@ export default class OCRLatexPlugin extends Plugin {
 		
 		let parsedLatex;
 		if (isMultiline) parsedLatex = `$$ ${data.res.latex}$$`;
-		else parsedLatex = `$ ${data.res.latex}$`;
+		else parsedLatex = `$${data.res.latex}$`;
 		
 		view?.editor.replaceRange(parsedLatex, cursor, {
 			// Insert the response
@@ -95,6 +95,14 @@ export default class OCRLatexPlugin extends Plugin {
 			},
 		});
 
+		this.addCommand({
+			id: "generate-latex-from-last-image",
+			name: "Deprecated! Use Generate multiline...",
+			callback: () => {
+				alert("Deprecated! Use the command 'Generate multiline LaTeX from last image to clipboard' instead. Please update your hotkeys.")
+				this.insertLatexFromClipboard(true);
+			},
+		});
 		this.addCommand({
 			id: "generate-latex-from-last-image-inline",
 			name: "Generate inline LaTeX from last image to clipboard",
