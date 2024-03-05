@@ -10,10 +10,14 @@ import { SimpleTexResponse } from "./SimpleTexResponse";
 
 interface OCRLatexPluginSettings {
 	token: string;
+	selfHosted: boolean;
+	url: string;
 }
 
 const DEFAULT_SETTINGS: OCRLatexPluginSettings = {
 	token: "",
+	selfHosted: false,
+	url: "https://server.simpletex.cn/api/latex_ocr",
 };
 
 export default class OCRLatexPlugin extends Plugin {
@@ -27,8 +31,7 @@ export default class OCRLatexPlugin extends Plugin {
 			contentType: "image/png",
 		});
 
-		const url = "https://server.simpletex.cn/api/latex_ocr";
-		const response = await fetch(url, {
+		const response = await fetch(this.settings.url, {
 			method: "POST",
 			headers: {
 				token: this.settings.token,
@@ -37,12 +40,29 @@ export default class OCRLatexPlugin extends Plugin {
 		});
 		if (!response.ok) response; // Not a ok response, we throw here and let method calling to show error message
 
-		const data: SimpleTexResponse =
-			(await response.json()) as SimpleTexResponse;
-		return data;
+		if (this.settings.selfHosted) {
+			const jsonString = await response.text();
+			// Remove the quotes at the start and end of the string
+			let latexText = jsonString.substring(1, jsonString.length - 1);
+			// Replace all occurrences of \\ with \
+			latexText = latexText.replace(/\\\\/g, '\\');
+			const simpleTexResponse: SimpleTexResponse = {
+				status: true,
+				res: {
+					latex: latexText,
+					conf: 1,
+				}, 
+				request_id: "docker_request"
+			};
+			return simpleTexResponse;
+		} else {
+			const data: SimpleTexResponse = (await response.json()) as SimpleTexResponse;
+			console.log(data);
+			return data;
+		}
 	}
 
-	async insertLatexFromClipboard(isMultiline=false) {
+	async insertLatexFromClipboard(isMultiline = false) {
 		console.log(clipboard.availableFormats());
 		const view = this.app.workspace.getActiveViewOfType(MarkdownView);
 		const cursor = view?.editor.getCursor();
@@ -96,14 +116,6 @@ export default class OCRLatexPlugin extends Plugin {
 		});
 
 		this.addCommand({
-			id: "generate-latex-from-last-image",
-			name: "Deprecated! Use Generate multiline...",
-			callback: () => {
-				alert("Deprecated! Use the command 'Generate multiline LaTeX from last image to clipboard' instead. Please update your hotkeys.")
-				this.insertLatexFromClipboard(true);
-			},
-		});
-		this.addCommand({
 			id: "generate-latex-from-last-image-inline",
 			name: "Generate inline LaTeX from last image to clipboard",
 			callback: () => {
@@ -115,7 +127,7 @@ export default class OCRLatexPlugin extends Plugin {
 		this.addSettingTab(new OCRLatexSettings(this.app, this));
 	}
 
-	onunload() {}
+	onunload() { }
 
 	async loadSettings() {
 		this.settings = Object.assign(
@@ -157,5 +169,31 @@ class OCRLatexSettings extends PluginSettingTab {
 						await this.plugin.saveSettings();
 					})
 			);
+
+		new Setting(containerEl)
+			.setName("Use Docker")
+			.setDesc("Enable this option if you want to use a self-hosted Docker API.")
+			.addToggle((toggle) =>
+				toggle
+					.setValue(this.plugin.settings.selfHosted)
+					.onChange(async (value) => {
+						this.plugin.settings.selfHosted = value;
+						await this.plugin.saveSettings();
+						const pluginId = this.plugin.manifest.id;
+					})
+			);
+
+		new Setting(containerEl)
+		.setName("URL")
+		.setDesc("The URL for the API endpoint, only active when self-hosted is enabled.")
+		.addText((text) =>
+			text
+				.setPlaceholder("Enter your URL")
+				.setValue(this.plugin.settings.url)
+				.onChange(async (value) => {
+					this.plugin.settings.url = value;
+					await this.plugin.saveSettings();
+				})
+		);
 	}
 }
