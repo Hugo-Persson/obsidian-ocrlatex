@@ -12,12 +12,16 @@ interface OCRLatexPluginSettings {
 	token: string;
 	selfHosted: boolean;
 	url: string;
+	username: string;
+	password: string;
 }
 
 const DEFAULT_SETTINGS: OCRLatexPluginSettings = {
 	token: "",
 	selfHosted: false,
 	url: "https://server.simpletex.cn/api/latex_ocr",
+	username: "",
+	password: "",
 };
 
 export default class OCRLatexPlugin extends Plugin {
@@ -31,13 +35,25 @@ export default class OCRLatexPlugin extends Plugin {
 			contentType: "image/png",
 		});
 
-		const response = await fetch(this.settings.url, {
-			method: "POST",
-			headers: {
-				token: this.settings.token,
-			},
-			body: formData,
-		});
+		let response;
+		if (this.settings.selfHosted) {
+			response = await fetch(this.settings.url, {
+				method: "POST",
+				headers: {
+					Authorization: `Basic ${btoa(`${this.settings.username}:${this.settings.password}`)}`,
+				},
+				body: formData,
+			});
+		} else {
+			response = await fetch(this.settings.url, {
+				method: "POST",
+				headers: {
+					token: this.settings.token,
+				},
+				body: formData,
+			});
+		}
+
 		if (!response.ok) response; // Not a ok response, we throw here and let method calling to show error message
 
 		if (this.settings.selfHosted) {
@@ -195,5 +211,31 @@ class OCRLatexSettings extends PluginSettingTab {
 					await this.plugin.saveSettings();
 				})
 		);
+
+		        new Setting(containerEl)
+            .setName("Username (self-hosted optional)")
+            .setDesc("Your username for authentication. If you use self-hosted and a basic auth proxy before the container.")
+            .addText((text) =>
+                text
+                    .setPlaceholder("Enter your username")
+                    .setValue(this.plugin.settings.username)
+                    .onChange(async (value) => {
+                        this.plugin.settings.username = value;
+                        await this.plugin.saveSettings();
+                    })
+            );
+
+        new Setting(containerEl)
+            .setName("Password (self-hosted optional)")
+            .setDesc("Your password for authentication. If you use self-hosted and a basic auth proxy before the container.")
+            .addText((text) =>
+                text
+                    .setPlaceholder("Enter your password")
+                    .setValue(this.plugin.settings.password)
+                    .onChange(async (value) => {
+                        this.plugin.settings.password = value;
+                        await this.plugin.saveSettings();
+                    })
+            );
 	}
 }
