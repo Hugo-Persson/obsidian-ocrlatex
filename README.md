@@ -31,6 +31,9 @@ It is possible to a self-hosted instance.The self-hosted API should just return 
 3. Enter the URL to the container, if you use the image above you need to postfix `/predict/` e.g. `http://localhost:8502/predict/`
 4. Optional add username and password, if container is behind a basic auth proxy (e.g. [nginx](https://nginx.org/en/docs/http/ngx_http_auth_basic_module.html))
 
+## Using Self-Hosted on ARM based mac
+The docker container for pic2tex does not work for ARM based Mac. A workaround is running it through python directly as desribed through the docs. 
+
 # Future improvements ✅
 
 -   [ ] Convert already pasted images
