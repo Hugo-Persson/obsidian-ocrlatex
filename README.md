@@ -37,7 +37,6 @@ The docker container for pic2tex does not work for ARM based Mac. A workaround i
 # Future improvements ✅
 
 -   [ ] Convert already pasted images
--   [ ] Use https://github.com/lukas-blecher/LaTeX-OCR for self hosted version
 
 # Attribution
 
