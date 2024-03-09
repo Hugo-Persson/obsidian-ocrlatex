@@ -37,13 +37,17 @@ export default class OCRLatexPlugin extends Plugin {
 
 		let response;
 		if (this.settings.selfHosted) {
-			response = await fetch(this.settings.url, {
+			let options: any = {
 				method: "POST",
-				headers: {
-					Authorization: `Basic ${btoa(`${this.settings.username}:${this.settings.password}`)}`,
-				},
 				body: formData,
-			});
+			};
+			if (this.settings.username && this.settings.password) {
+				options.headers = {
+					Authorization: `Basic ${btoa(`${this.settings.username}:${this.settings.password}`)
+						}`,
+				};
+			}
+			response = await fetch(this.settings.url, options);
 		} else {
 			response = await fetch(this.settings.url, {
 				method: "POST",
@@ -61,18 +65,19 @@ export default class OCRLatexPlugin extends Plugin {
 			// Remove the quotes at the start and end of the string
 			let latexText = jsonString.substring(1, jsonString.length - 1);
 			// Replace all occurrences of \\ with \
-			latexText = latexText.replace(/\\\\/g, '\\');
+			latexText = latexText.replace(/\\\\/g, "\\");
 			const simpleTexResponse: SimpleTexResponse = {
 				status: true,
 				res: {
 					latex: latexText,
 					conf: 1,
-				}, 
-				request_id: "docker_request"
+				},
+				request_id: "docker_request",
 			};
 			return simpleTexResponse;
 		} else {
-			const data: SimpleTexResponse = (await response.json()) as SimpleTexResponse;
+			const data: SimpleTexResponse =
+				(await response.json()) as SimpleTexResponse;
 			console.log(data);
 			return data;
 		}
@@ -85,16 +90,15 @@ export default class OCRLatexPlugin extends Plugin {
 		const editor = view?.editor;
 		if (!cursor || !editor) {
 			alert(
-				"No focus on editor, please insert cursor in a document then run command again."
+				"No focus on editor, please insert cursor in a document then run command again.",
 			);
 			return;
 		}
-		const hasImageCopied =
-			clipboard.availableFormats().includes("image/png") ||
+		const hasImageCopied = clipboard.availableFormats().includes("image/png") ||
 			clipboard.availableFormats().includes("image/jpeg");
 		if (!hasImageCopied) {
 			alert(
-				"No image found in clipboard, please copy an image then run command again."
+				"No image found in clipboard, please copy an image then run command again.",
 			);
 			return;
 		}
@@ -108,11 +112,11 @@ export default class OCRLatexPlugin extends Plugin {
 		const image = clipboard.readImage().toPNG();
 		const data = await this.sendSimpleTexRequest(image);
 		console.log(data);
-		
+
 		let parsedLatex;
 		if (isMultiline) parsedLatex = `$$ ${data.res.latex}$$`;
 		else parsedLatex = `$${data.res.latex}$`;
-		
+
 		view?.editor.replaceRange(parsedLatex, cursor, {
 			// Insert the response
 			ch: cursor.ch + loadingText.length, // We replace the loading text
@@ -149,7 +153,7 @@ export default class OCRLatexPlugin extends Plugin {
 		this.settings = Object.assign(
 			{},
 			DEFAULT_SETTINGS,
-			await this.loadData()
+			await this.loadData(),
 		);
 	}
 
@@ -174,7 +178,7 @@ class OCRLatexSettings extends PluginSettingTab {
 		new Setting(containerEl)
 			.setName("Your token")
 			.setDesc(
-				"The token for SimpleTEX, see how to get here https://github.com/Hugo-Persson/obsidian-ocrlatex"
+				"The token for SimpleTEX, see how to get here https://github.com/Hugo-Persson/obsidian-ocrlatex",
 			)
 			.addText((text) =>
 				text
@@ -188,7 +192,9 @@ class OCRLatexSettings extends PluginSettingTab {
 
 		new Setting(containerEl)
 			.setName("Use Docker")
-			.setDesc("Enable this option if you want to use a self-hosted Docker API.")
+			.setDesc(
+				"Enable this option if you want to use a self-hosted Docker API.",
+			)
 			.addToggle((toggle) =>
 				toggle
 					.setValue(this.plugin.settings.selfHosted)
@@ -200,42 +206,49 @@ class OCRLatexSettings extends PluginSettingTab {
 			);
 
 		new Setting(containerEl)
-		.setName("URL")
-		.setDesc("The URL for the API endpoint, only active when self-hosted is enabled.")
-		.addText((text) =>
-			text
-				.setPlaceholder("Enter your URL")
-				.setValue(this.plugin.settings.url)
-				.onChange(async (value) => {
-					this.plugin.settings.url = value;
-					await this.plugin.saveSettings();
-				})
-		);
+			.setName("URL")
+			.setDesc(
+				"The URL for the API endpoint, only active when self-hosted is enabled.",
+			)
+			.addText((text) =>
+				text
+					.setPlaceholder("Enter your URL")
+					.setValue(this.plugin.settings.url)
+					.onChange(async (value) => {
+						if(!value.endsWith("/")) value += "/";
+						this.plugin.settings.url = value;
+						await this.plugin.saveSettings();
+					})
+			);
 
-		        new Setting(containerEl)
-            .setName("Username (self-hosted optional)")
-            .setDesc("Your username for authentication. If you use self-hosted and a basic auth proxy before the container.")
-            .addText((text) =>
-                text
-                    .setPlaceholder("Enter your username")
-                    .setValue(this.plugin.settings.username)
-                    .onChange(async (value) => {
-                        this.plugin.settings.username = value;
-                        await this.plugin.saveSettings();
-                    })
-            );
+		new Setting(containerEl)
+			.setName("Username (self-hosted optional)")
+			.setDesc(
+				"Your username for authentication. If you use self-hosted and a basic auth proxy before the container.",
+			)
+			.addText((text) =>
+				text
+					.setPlaceholder("Enter your username")
+					.setValue(this.plugin.settings.username)
+					.onChange(async (value) => {
+						this.plugin.settings.username = value;
+						await this.plugin.saveSettings();
+					})
+			);
 
-        new Setting(containerEl)
-            .setName("Password (self-hosted optional)")
-            .setDesc("Your password for authentication. If you use self-hosted and a basic auth proxy before the container.")
-            .addText((text) =>
-                text
-                    .setPlaceholder("Enter your password")
-                    .setValue(this.plugin.settings.password)
-                    .onChange(async (value) => {
-                        this.plugin.settings.password = value;
-                        await this.plugin.saveSettings();
-                    })
-            );
+		new Setting(containerEl)
+			.setName("Password (self-hosted optional)")
+			.setDesc(
+				"Your password for authentication. If you use self-hosted and a basic auth proxy before the container.",
+			)
+			.addText((text) =>
+				text
+					.setPlaceholder("Enter your password")
+					.setValue(this.plugin.settings.password)
+					.onChange(async (value) => {
+						this.plugin.settings.password = value;
+						await this.plugin.saveSettings();
+					})
+			);
 	}
 }
