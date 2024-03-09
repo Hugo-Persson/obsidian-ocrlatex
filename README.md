@@ -23,6 +23,14 @@ To use this plugin you need to create a developer account at https://simpletex.c
 5. Copy the token and paste into Obsidian settings ![](docs/UAT.png)
 6. Now you are ready to use the addon 🥳
 
+## Using a Self-Hosted Docker API 🐳
+
+It is possible to a self-hosted instance.The self-hosted API should just return a string with quotes containing the LaTeX text, you can use this [image](https://hub.docker.com/r/lukasblecher/pix2tex) from this [repo](https://github.com/lukas-blecher/LaTeX-OCR).
+1. Setup the docker container [image](https://hub.docker.com/r/lukasblecher/pix2tex)
+2. Enable `Use Docker` in the plugin settings
+3. Enter the URL to the container, if you use the image above you need to postfix `/predict/` e.g. `http://localhost:8502/predict/`
+4. Optional add username and password, if container is behind a basic auth proxy (e.g. [nginx](https://nginx.org/en/docs/http/ngx_http_auth_basic_module.html))
+
 # Future improvements ✅
 
 -   [ ] Convert already pasted images
