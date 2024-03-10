@@ -1,7 +1,7 @@
 {
 	"id": "image2latex",
 	"name": "Image2LaTEX",
-	"version": "1.0.4",
+	"version": "1.0.5",
 	"minAppVersion": "0.15.0",
 	"description": "Convert your images with math to LaTEX code.",
 	"author": "Hugo Persson",

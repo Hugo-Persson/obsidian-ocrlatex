@@ -1,5 +1,10 @@
 #!/bin/bash
-#
+
+
+echo "Have you updated CHANGELOG.md, versions.json, manifest.json and package.json?"
+read -p "Press any key to continue, or press Ctrl+C to cancel."
+
+
 last_tag=$(git describe --tags --abbrev=0)
 echo "Last tag: $last_tag"
 # Prompt the user for a version number
