@@ -7,6 +7,10 @@ import fetch from "node-fetch";
 import FormData from "form-data";
 
 import { SimpleTexResponse } from "./SimpleTexResponse";
+import OCRProvider from "./ocr-provider";
+import Pic2Tex from "./pic2tex";
+import SimpleTex from "./simple-tex";
+import Texify from "./texify";
 
 interface OCRLatexPluginSettings {
 	token: string;
@@ -24,67 +28,23 @@ const DEFAULT_SETTINGS: OCRLatexPluginSettings = {
 	password: "",
 };
 
+const loadingText = `Loading latex...`;
 export default class OCRLatexPlugin extends Plugin {
 	settings: OCRLatexPluginSettings;
 
-	async sendSimpleTexRequest(image: Uint8Array): Promise<SimpleTexResponse> {
-		const formData = new FormData();
-
-		formData.append("file", image, {
-			filename: "test.png",
-			contentType: "image/png",
-		});
-
-		let response;
-		if (this.settings.selfHosted) {
-			let options: any = {
-				method: "POST",
-				body: formData,
-			};
-			if (this.settings.username && this.settings.password) {
-				options.headers = {
-					Authorization: `Basic ${btoa(`${this.settings.username}:${this.settings.password}`)
-						}`,
-				};
-			}
-			response = await fetch(this.settings.url, options);
-		} else {
-			response = await fetch(this.settings.url, {
-				method: "POST",
-				headers: {
-					token: this.settings.token,
-				},
-				body: formData,
-			});
+	private getClipboardImage(): Uint8Array | null {
+		const hasImageCopied = clipboard.availableFormats().includes("image/png") ||
+			clipboard.availableFormats().includes("image/jpeg");
+		if (!hasImageCopied) {
+			alert(
+				"No image found in clipboard, please copy an image then run command again.",
+			);
+			return null;
 		}
-
-		if (!response.ok) response; // Not a ok response, we throw here and let method calling to show error message
-
-		if (this.settings.selfHosted) {
-			const jsonString = await response.text();
-			// Remove the quotes at the start and end of the string
-			let latexText = jsonString.substring(1, jsonString.length - 1);
-			// Replace all occurrences of \\ with \
-			latexText = latexText.replace(/\\\\/g, "\\");
-			const simpleTexResponse: SimpleTexResponse = {
-				status: true,
-				res: {
-					latex: latexText,
-					conf: 1,
-				},
-				request_id: "docker_request",
-			};
-			return simpleTexResponse;
-		} else {
-			const data: SimpleTexResponse =
-				(await response.json()) as SimpleTexResponse;
-			console.log(data);
-			return data;
-		}
+		return clipboard.readImage().toPNG();
 	}
 
-	async insertLatexFromClipboard(isMultiline = false) {
-		console.log(clipboard.availableFormats());
+	private insertLoadingText() {
 		const view = this.app.workspace.getActiveViewOfType(MarkdownView);
 		const cursor = view?.editor.getCursor();
 		const editor = view?.editor;
@@ -94,34 +54,43 @@ export default class OCRLatexPlugin extends Plugin {
 			);
 			return;
 		}
-		const hasImageCopied = clipboard.availableFormats().includes("image/png") ||
-			clipboard.availableFormats().includes("image/jpeg");
-		if (!hasImageCopied) {
-			alert(
-				"No image found in clipboard, please copy an image then run command again.",
-			);
-			return;
-		}
-
-		const loadingText = `Loading latex...`;
 		editor.replaceRange(loadingText, cursor);
 		editor.setCursor({
 			line: cursor.line,
 			ch: cursor.ch + loadingText.length,
 		});
-		const image = clipboard.readImage().toPNG();
-		const data = await this.sendSimpleTexRequest(image);
-		console.log(data);
+	}
 
-		let parsedLatex;
-		if (isMultiline) parsedLatex = `$$ ${data.res.latex}$$`;
-		else parsedLatex = `$${data.res.latex}$`;
-
-		view?.editor.replaceRange(parsedLatex, cursor, {
+	private insertResponseToEditor(res: string) {
+		const view = this.app.workspace.getActiveViewOfType(MarkdownView);
+		const cursor = view?.editor.getCursor();
+		const editor = view?.editor;
+		if (!cursor || !editor) {
+			alert(
+				"No focus on editor, please insert cursor in a document then run command again.",
+			);
+			return;
+		}
+		view?.editor.replaceRange(res, cursor, {
 			// Insert the response
 			ch: cursor.ch + loadingText.length, // We replace the loading text
 			line: cursor.line,
 		});
+	}
+
+	private async insert(provider: OCRProvider) {
+		try {
+			const image = this.getClipboardImage();
+			if (!image) return;
+			this.insertLoadingText();
+			const parsedLatex = await provider.sendRequest(image);
+			this.insertResponseToEditor(parsedLatex);
+		} catch (error) {
+			console.error(error);
+			alert(
+				"Error while fetching latex, please check the console for more information.",
+			);
+		}
 	}
 
 	async onload() {
@@ -131,7 +100,11 @@ export default class OCRLatexPlugin extends Plugin {
 			id: "generate-latex-from-last-image-multiline",
 			name: "Generate multiline LaTeX from last image to clipboard",
 			callback: () => {
-				this.insertLatexFromClipboard(true);
+				this.insert(
+					this.settings.selfHosted
+						? new Pic2Tex(true, this.settings)
+						: new SimpleTex(true, this.settings),
+				);
 			},
 		});
 
@@ -139,7 +112,19 @@ export default class OCRLatexPlugin extends Plugin {
 			id: "generate-latex-from-last-image-inline",
 			name: "Generate inline LaTeX from last image to clipboard",
 			callback: () => {
-				this.insertLatexFromClipboard(false);
+				this.insert(
+					this.settings.selfHosted
+						? new Pic2Tex(true, this.settings)
+						: new SimpleTex(true, this.settings),
+				);
+			},
+		});
+
+		this.addCommand({
+			id: "generate-markdown-from-last-image",
+			name: "Generate markdown from last image to clipboard using Texify",
+			callback: async () => {
+				this.insert(new Texify());
 			},
 		});
 
@@ -215,7 +200,7 @@ class OCRLatexSettings extends PluginSettingTab {
 					.setPlaceholder("Enter your URL")
 					.setValue(this.plugin.settings.url)
 					.onChange(async (value) => {
-						if(!value.endsWith("/")) value += "/";
+						if (!value.endsWith("/")) value += "/";
 						this.plugin.settings.url = value;
 						await this.plugin.saveSettings();
 					})
