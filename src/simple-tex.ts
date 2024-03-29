@@ -23,6 +23,7 @@ export default class SimpleTex extends TexWrapper {
 		});
 
 		let response;
+		console.log("Simple tex url", this.settings.url);
 		response = await fetch(this.settings.url, {
 			method: "POST",
 			headers: {
@@ -31,10 +32,14 @@ export default class SimpleTex extends TexWrapper {
 			body: formData,
 		});
 
-		if (!response.ok) response; // Not a ok response, we throw here and let method calling to show error message
-
-		const data: SimpleTexResponse =
-			(await response.json()) as SimpleTexResponse;
+		if (!response.ok) {
+			console.error("Simpletext response", response); // Not a ok response, we throw here and let method calling to show error message
+			alert("Simple TEX not working properly, see logs.")
+		}
+		const resText = await response.text();
+		console.log("Simple tex response", resText);
+		const data: SimpleTexResponse = (JSON.parse(resText)) as SimpleTexResponse;
+		console.log("Simple tex data");
 		return data.res.latex;
 	}
 }

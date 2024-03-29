@@ -11,6 +11,7 @@ import OCRProvider from "./ocr-provider";
 import Pic2Tex from "./pic2tex";
 import SimpleTex from "./simple-tex";
 import Texify from "./texify";
+import EditorInteract from "./editor-interact";
 
 interface OCRLatexPluginSettings {
 	token: string;
@@ -28,7 +29,6 @@ const DEFAULT_SETTINGS: OCRLatexPluginSettings = {
 	password: "",
 };
 
-const loadingText = `Loading latex...`;
 export default class OCRLatexPlugin extends Plugin {
 	settings: OCRLatexPluginSettings;
 
@@ -44,47 +44,20 @@ export default class OCRLatexPlugin extends Plugin {
 		return clipboard.readImage().toPNG();
 	}
 
-	private insertLoadingText() {
-		const view = this.app.workspace.getActiveViewOfType(MarkdownView);
-		const cursor = view?.editor.getCursor();
-		const editor = view?.editor;
-		if (!cursor || !editor) {
-			alert(
-				"No focus on editor, please insert cursor in a document then run command again.",
-			);
-			return;
-		}
-		editor.replaceRange(loadingText, cursor);
-		editor.setCursor({
-			line: cursor.line,
-			ch: cursor.ch + loadingText.length,
-		});
-	}
-
-	private insertResponseToEditor(res: string) {
-		const view = this.app.workspace.getActiveViewOfType(MarkdownView);
-		const cursor = view?.editor.getCursor();
-		const editor = view?.editor;
-		if (!cursor || !editor) {
-			alert(
-				"No focus on editor, please insert cursor in a document then run command again.",
-			);
-			return;
-		}
-		view?.editor.replaceRange(res, cursor, {
-			// Insert the response
-			ch: cursor.ch + loadingText.length, // We replace the loading text
-			line: cursor.line,
-		});
-	}
-
 	private async insert(provider: OCRProvider) {
 		try {
+			const view = this.app.workspace.getActiveViewOfType(MarkdownView);
+			if (!view) {
+				alert("No active markdown view found.");
+				return;
+			}
+			const editorInteract = new EditorInteract(view);
+
 			const image = this.getClipboardImage();
 			if (!image) return;
-			this.insertLoadingText();
+			editorInteract.insertLoadingText();
 			const parsedLatex = await provider.sendRequest(image);
-			this.insertResponseToEditor(parsedLatex);
+			editorInteract.insertResponseToEditor(parsedLatex);
 		} catch (error) {
 			console.error(error);
 			alert(
