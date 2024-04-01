@@ -1,14 +1,13 @@
 
-import OCRProvider from "./ocr-provider";
 import fetch from "node-fetch";
 import FormData from "form-data";
-import { TexifyResponse } from "./TexifyResponse";
 import TexWrapper from "./tex-wrapper";
+import { OCRLatexPluginSettings } from "./settings";
 
 export default class Pic2Tex  extends TexWrapper{
-	settings: any;
+	settings: OCRLatexPluginSettings;
 
-	constructor(isMultiline: boolean, settings: any) {
+	constructor(isMultiline: boolean, settings: OCRLatexPluginSettings) {
 		super(isMultiline);
 		this.settings = settings;
 	}
@@ -26,13 +25,13 @@ export default class Pic2Tex  extends TexWrapper{
 				method: "POST",
 				body: formData,
 			};
-			if (this.settings.username && this.settings.password) {
+			if (this.settings.pix2tex.username && this.settings.pix2tex.password) {
 				options.headers = {
-					Authorization: `Basic ${btoa(`${this.settings.username}:${this.settings.password}`)
+					Authorization: `Basic ${btoa(`${this.settings.pix2tex.username}:${this.settings.pix2tex.password}`)
 						}`,
 				};
 			}
-			response = await fetch(this.settings.url, options);
+			response = await fetch(this.settings.pix2tex.url, options);
 
 		if (!response.ok) throw response; // Not a ok response, we throw here and let method calling to show error message
 

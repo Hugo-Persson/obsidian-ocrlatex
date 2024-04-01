@@ -4,12 +4,13 @@ import FormData from "form-data";
 import { TexifyResponse } from "./TexifyResponse";
 import TexWrapper from "./tex-wrapper";
 import { SimpleTexResponse } from "./SimpleTexResponse";
+import { OCRLatexPluginSettings } from "./settings";
 
 // Simpletex is web service that converts images to latex
 export default class SimpleTex extends TexWrapper {
-	settings: any;
+	settings: OCRLatexPluginSettings;
 
-	constructor(isMultiline: boolean, settings: any) {
+	constructor(isMultiline: boolean, settings: OCRLatexPluginSettings) {
 		super(isMultiline);
 		this.settings = settings;
 	}
@@ -23,11 +24,10 @@ export default class SimpleTex extends TexWrapper {
 		});
 
 		let response;
-		console.log("Simple tex url", this.settings.url);
-		response = await fetch(this.settings.url, {
+		response = await fetch("https://server.simpletex.cn/api/latex_ocr", {
 			method: "POST",
 			headers: {
-				token: this.settings.token,
+				token: this.settings.simpleTexToken,
 			},
 			body: formData,
 		});
