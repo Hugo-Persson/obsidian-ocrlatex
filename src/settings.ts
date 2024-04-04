@@ -27,7 +27,7 @@ export const DEFAULT_SETTINGS: OCRLatexPluginSettings = {
 	simpleTexToken: "",
 	latexProvider: "SimpleTex",
 	texify:{
-		url: "localhost:5000",
+		url: "http://127.0.0.1:5000/predict",
 		username: "",
 		password: "",
 	},
@@ -43,7 +43,7 @@ import OCRLatexPlugin from "./main";
 export default class OCRLatexSettings extends PluginSettingTab {
 	plugin: OCRLatexPlugin;
 
-	renderSelfHostedOptions(obj: SelfHostedSettings, containerEl:HTMLElement ) {
+	renderSelfHostedOptions(obj: SelfHostedSettings, containerEl:HTMLElement, endWithSlash: boolean) {
 		new Setting(containerEl)
 			.setName("URL")
 			.setDesc(
@@ -54,7 +54,8 @@ export default class OCRLatexSettings extends PluginSettingTab {
 					.setPlaceholder("Enter your URL")
 					.setValue(obj.url)
 					.onChange(async (value) => {
-						if (!value.endsWith("/")) value += "/";
+						if (!value.endsWith("/") && endWithSlash) value += "/";
+						if(value.endsWith("/") && !endWithSlash) value = value.slice(0, -1);
 						obj.url = value;
 						await this.plugin.saveSettings();
 					})
@@ -118,10 +119,10 @@ export default class OCRLatexSettings extends PluginSettingTab {
 		});
 
 		containerEl.createEl("h2", { text: "Texify" });
-		this.renderSelfHostedOptions(this.plugin.settings.texify, containerEl);
+		this.renderSelfHostedOptions(this.plugin.settings.texify, containerEl, false);
 
 		containerEl.createEl("h2", { text: "Pix2Tex" });
-		this.renderSelfHostedOptions(this.plugin.settings.pix2tex, containerEl);
+		this.renderSelfHostedOptions(this.plugin.settings.pix2tex, containerEl, true);
 
 
 		containerEl.createEl("h2", { text: "SimpleTex" });
