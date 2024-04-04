@@ -1,4 +1,6 @@
 # 1.1.0 - 2023-04-01
+- Fixed: https://github.com/Hugo-Persson/obsidian-ocrlatex/issues/12
+# 1.1.0 - 2023-04-01
 ## New 🚀
 - Added Texify for image → markdown
 ## ⚠️ Breaking changes

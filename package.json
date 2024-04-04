@@ -1,6 +1,6 @@
 {
 	"name": "image2latex",
-	"version": "1.1.0",
+	"version": "1.1.1",
 	"description": "Convert your images to Markdown and MathJax",
 	"main": "main.js",
 	"scripts": {

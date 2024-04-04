@@ -29,7 +29,7 @@ export default class Texify implements OCRProvider {
 					}`,
 			};
 		}
-		const response = await fetch("http://127.0.0.1:5000/predict", options);
+		const response = await fetch(this.settings.url, options);
 		const parsed: TexifyResponse = await response.json() as TexifyResponse;
 		console.log(parsed);
 		return parsed.results[0];
