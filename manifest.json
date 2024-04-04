@@ -1,7 +1,7 @@
 {
 	"id": "image2latex",
 	"name": "Image2LaTEX",
-	"version": "1.1.1",
+	"version": "1.1.2",
 	"minAppVersion": "0.15.0",
 	"description": "Convert your images to Markdown and MathJax",
 	"author": "Hugo Persson",

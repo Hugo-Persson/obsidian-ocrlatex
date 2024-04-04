@@ -1,4 +1,6 @@
-# 1.1.0 - 2023-04-01
+# 1.1.2 - 2023-04-04
+- Fixed bug with Texify settings
+# 1.1.1 - 2023-04-04
 - Fixed: https://github.com/Hugo-Persson/obsidian-ocrlatex/issues/12
 # 1.1.0 - 2023-04-01
 ## New 🚀
