@@ -24,7 +24,7 @@ export default class SimpleTex extends TexWrapper {
 		});
 
 		let response;
-		response = await fetch("https://server.simpletex.cn/api/latex_ocr", {
+		response = await fetch("https://server.simpletex.cn/api/latex_ocr_turbo", {
 			method: "POST",
 			headers: {
 				token: this.settings.simpleTexToken,
